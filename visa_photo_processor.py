@@ -87,25 +87,26 @@ class VisaPhotoProcessor:
             face_center_x = x + w // 2
             face_center_y = y + h // 2
 
-            # For passport photos, the head should be 28-34mm of the 45mm height
-            # That's about 62-76% of the height. Let's use 70%
+            # For passport photos, focus more on the face area
+            # Use a reasonable head-to-photo ratio
             head_to_photo_ratio = 0.70
 
             # Face detection usually gets about 60-70% of the actual head height
-            # So we need to expand the detected face
-            estimated_head_height = h * 1.4  # Expand face height to get full head
+            estimated_head_height = h * 1.3
 
             # Calculate photo dimensions based on head size
             photo_height = estimated_head_height / head_to_photo_ratio
             photo_width = photo_height * target_aspect_ratio
 
-            # Position the face center in the photo
-            # Face should be at about 60% from the top (leaving 40% above, 40% below)
-            face_position_ratio = 0.55  # Slightly higher than center
+            # Center the crop on the FACE itself, not just position face in frame
+            # Move the crop center up to focus on face rather than including full head
+            face_offset_y = h * 0.3  # Move crop center up by 30% of face height from face center
+            crop_center_y = face_center_y - face_offset_y  # Focus on upper part of face
+            crop_center_x = face_center_x  # Keep horizontal centering on face
 
-            # Calculate crop position
-            crop_y = face_center_y - (photo_height * face_position_ratio)
-            crop_x = face_center_x - (photo_width / 2)
+            # Calculate crop position based on the new face-focused center
+            crop_y = crop_center_y - (photo_height / 2)
+            crop_x = crop_center_x - (photo_width / 2)
 
             # Ensure crop stays within image boundaries
             crop_x = max(0, min(crop_x, width - photo_width))
